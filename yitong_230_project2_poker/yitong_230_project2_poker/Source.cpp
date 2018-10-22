@@ -1,8 +1,10 @@
 ﻿#include<iostream>
+#include<string>
 using namespace std;
 
 struct Poker {
 	int card;
+	string suit;
 	Poker* next;
 };
 
@@ -12,8 +14,9 @@ struct Deck {
 
 void CurrentMoney(int);
 Deck* CreateDeck();
-void AddHead(Deck*, int);
-void AddTail(Deck*, int);
+void AddHead(Deck*, int, int);
+void AddTail(Deck*, int, int);
+void StartupDeck(Deck*);
 void PrintDeck(Deck*);
 int CountCards(Deck*);
 int FindCard(Deck*, int);
@@ -21,37 +24,14 @@ void DeleteHead(Deck*);
 void DeleteCard(Deck*, int);
 void RemoveDeck(Deck*);
 
-/*
-Poker* CreateCard(Poker*, int);
-void FindLastCard(Poker*);
-Poker* AddCard_emptydeck(Poker*, int, Poker*);
-Poker* AddCardAtEnd(int);
-Poker* AddCardAtBegin(int, Poker*);
-void PrintDeck(Poker*);*/
+string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
 
 int main() {
 	system("color f1");
 	CurrentMoney(5);
-	
 	Deck* deck = CreateDeck();
-	cout << deck->head << endl;//useage of creat a linked list
-
-	AddTail(deck, 42);
-	AddTail(deck, 55);
-	AddTail(deck, 78);
-	AddHead(deck, 111);
-	DeleteCard(deck, 2);
+	StartupDeck(deck);
 	PrintDeck(deck);
-
-	/*
-	//test linked list
-	Poker* deck = NULL;
-	Poker* head = NULL;
-	head = AddCard_emptydeck(deck, 1, head);
-	head = AddCardAtEnd(2);
-	head = AddCardAtEnd(3);
-	PrintDeck(head);
-	*/
 
 	system("pause");
 	return 0;
@@ -67,16 +47,17 @@ Deck* CreateDeck() {
 	return deck;
 }
 
-void AddHead(Deck* deck, int card) {
+void AddHead(Deck* deck, int card, int suit) {
 	Poker* add = new Poker;
 	add->card = card;
+	add->suit = suits[suit];
 	add->next = deck->head;
 	deck->head = add;
 }
 
-void AddTail(Deck* deck, int card) {
+void AddTail(Deck* deck, int card, int suit) {
 	if (deck->head == NULL) { //when the deck is empty
-		AddHead(deck, card);
+		AddHead(deck, card, suit);
 		return;
 	}
 	Poker* last = deck->head;
@@ -85,14 +66,23 @@ void AddTail(Deck* deck, int card) {
 	} //find the last card in the deck
 	Poker* add = new Poker; //add the new card at the end
 	add->card = card;
+	add->suit = suits[suit];
 	add->next = NULL;
 	last->next = add;
+}
+
+void StartupDeck(Deck* deck) {
+	for (int i = 0; i < 4; i++) {
+		for (int j = 1; j <= 13; j++) {
+			AddTail(deck, j, i);
+		}
+	}
 }
 
 void PrintDeck(Deck* deck) {
 	Poker* item = deck->head;
 	while (item != NULL) {
-		cout << item->card;
+		cout << item->card << " of " << item->suit;
 		if (item->next != NULL)
 			cout << ", ";
 		item = item->next;
@@ -153,64 +143,3 @@ void RemoveDeck(Deck* deck) {
 	}
 	delete deck;
 }
-
-/*
-Poker* CreateCard(Poker* cursor, int x) {
-	cursor->card = x;
-	cursor->next = NULL;
-	return cursor;
-}
-
-void FindLastCard(Poker* find) {
-	find = new Poker();
-	while (find->next != NULL) {
-		find = find->next;
-	}
-}
-
-Poker* AddCard_emptydeck(Poker* deck, int x, Poker* head) {
-	Poker* cursor = new Poker();
-	CreateCard(cursor, x);
-	deck = cursor;
-	head = cursor;
-	return head;
-}
-
-Poker* AddCardAtEnd(int x) {
-	Poker* cursor = new Poker();
-	CreateCard(cursor, x);
-	Poker* find = new Poker();
-	FindLastCard(find);
-	find->next = cursor;
-	return cursor;
-}
-
-Poker* AddCardAtBegin(int x, Poker* head) {
-	Poker* cursor = new Poker();
-	cursor->card = x;
-	cursor->next = NULL;
-	if (head != NULL)
-		cursor->next = head;
-	head = cursor;
-	return head;
-}
-
-void PrintDeck(Poker* head) {
-	Poker* cursor = new Poker();
-	cursor = head;
-	while (cursor != NULL) {
-		cout << cursor->next << endl;
-		cursor = cursor->next;
-	}
-}
-
-void DrawCard() {
-	cout << "----------  " << endl;
-	cout << "|1       |  " << endl;
-	cout << "|   /\\   |  " << endl;
-	cout << "|  /  \\  |  " << endl;
-	cout << "|  \\  /  |  " << endl;
-	cout << "|   \\/   |  " << endl;
-	cout << "|       1|  " << endl;
-	cout << "----------  " << endl;
-}*/
