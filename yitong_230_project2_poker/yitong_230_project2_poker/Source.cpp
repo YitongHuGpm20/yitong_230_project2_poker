@@ -2,6 +2,7 @@
 #include<string>
 #include<cstdlib>
 #include<ctime>
+#include<limits>
 using namespace std;
 
 struct Poker {
@@ -16,7 +17,7 @@ struct Deck {
 	Poker* tail;
 };
 
-void CurrentMoney(int);
+void CurrentMoney();
 Deck* CreateDeck();
 void AddHead(Deck*, int, int, bool);
 void AddTail(Deck*, int, int, bool);
@@ -45,27 +46,32 @@ bool EndGame();
 
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
 int money = 5;
+bool isNewGame = true;
 
 int main() {
-	system("color f1");
-	cout << "Welcome to Yitong Hu's Video Poker Game!!!" << endl;
-	cout << "You start with $5." << endl;
 	Deck* deck = CreateDeck();
 	Deck* hand = CreateDeck();
+	system("color f1");
 	StartupDeck(deck);
-	CurrentMoney(money);
 	do {
+		
+		//CurrentMoney();
 		DrawPokers(deck, hand);
 		PrintCount(deck);
 		Console(deck, hand);
 		EndGame();
+		system("pause");
+		system("cls");
+		isNewGame = false;
 	} while (EndGame() == false);
 	
 	system("pause");
 	return 0;
 }
 
-void CurrentMoney(int money) {
+void CurrentMoney() {
+	cout << "Welcome to Yitong Hu's Video Poker Game!!!" << endl;
+	cout << "You start with $" << money << "." << endl;
 	money--;
 	cout << "You payed $1 and currently have $" << money << "." << endl << endl;
 }
@@ -178,7 +184,7 @@ int CountPokers(Deck* deck) {
 }
 
 void PrintCount(Deck* deck) {
-	cout << "There are " << CountPokers(deck) << " cards in the deck" << endl;
+	cout << "There are " << CountPokers(deck) << " cards in the deck" << endl << endl;
 }
 
 void DeleteHead(Deck* deck) {
@@ -278,7 +284,7 @@ void PrintHand(Deck* hand) {
 		item = item->next;
 		i++;
 	}
-	cout << endl << endl;
+	cout << endl;
 }
 
 void RemoveDeck(Deck* deck) {
@@ -329,10 +335,12 @@ void DrawPokers(Deck* deck, Deck* hand) {
 		int item = 1 + (rand() % (CountPokers(deck) - i));
 		int card = FindCard(deck, item - 1);
 		int suit = FindSuit(deck, item - 1);
-		AddTail(hand, card, suit, false);
+		if (isNewGame == true)
+			AddTail(hand, card, suit, false);
+		else
+			ReplacePoker(hand, i, card, suit, false);
 		DeletePoker(deck, item - 1);
 	}
-	PrintHand(hand);
 	SortPokers(hand);
 	PrintHand(hand);
 }
@@ -362,8 +370,6 @@ void Console(Deck* deck, Deck* hand) {
 				}
 			}
 			DrawNewPoker(hand, deck);
-			PrintCount(deck);
-			PokerHand(hand);
 		}
 	} while (keepask == true);
 }
@@ -395,9 +401,14 @@ void DrawNewPoker(Deck* hand, Deck* deck) {
 		}
 		item = item->next;
 	}
-	PrintHand(hand);
 	SortPokers(hand);
+	system("cls");
+	cout << "Welcome to Yitong Hu's Video Poker Game!!!" << endl;
+	cout << "You start with $5." << endl;
+	CurrentMoney();
 	PrintHand(hand);
+	PrintCount(deck);
+	PokerHand(hand);
 }
 
 void PokerHand(Deck* hand) {
@@ -432,21 +443,36 @@ void PokerHand(Deck* hand) {
 		count = 1;
 		if (pair == 2)
 			break;
+		if (flush == 5)
+			break;
 	}
 	if (isFour) {
-		cout << "Congratulations! You got Four of a Kind and earned $25!" << endl;
+		cout << "Congratulations! You got Four of a Kind and earned $25!" << endl << endl;
+		money += 25;
 	}
 	else if (isThree) {
-		cout << "Congratulations! You got Three of a Kind and earned $3!" << endl;
+		cout << "Congratulations! You got Three of a Kind and earned $3!" << endl << endl;
+		money += 3;
 	}
 	else if (pair == 2) {
-		cout << "Congratulations! You got Two Pair and earned $2!" << endl;
+		cout << "Congratulations! You got Two Pair and earned $2!" << endl << endl;
+		money += 2;
 	}
 	else if (isOnePair) {
-		cout << "Congratulations! You got One Pair and earned $1!" << endl;
+		cout << "Congratulations! You got One Pair and earned $1!" << endl << endl;
+		money += 1;
 	}
+	else if (flush == 5) {
+		cout << "Congratulations! You got Flush and earned $6!" << endl << endl;
+		money += 6;
+	}
+	else
+		cout << "Oh you lost! No money for you!" << endl << endl;
 }
 
 bool EndGame() {
-	return true;
+	if (money == 0)
+		return true;
+	else
+		return false;
 }
