@@ -35,10 +35,11 @@ void PrintDeck(Deck*);
 void PrintHand(Deck*);
 void RemoveDeck(Deck*);
 void StartupDeck(Deck*);
+void SortPokers(Deck*);
 void DrawPokers(Deck*, Deck*);
 void Console(Deck*, Deck*);
-void KeepPokers(char, Deck*, Deck*);
-void DrawNewPokers(Deck*, Deck*);
+void KeepPoker(char, Deck*, Deck*);
+void DrawNewPoker(Deck*, Deck*);
 bool EndGame();
 
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
@@ -297,6 +298,30 @@ void StartupDeck(Deck* deck) {
 	}
 }
 
+void SortPokers(Deck* hand) {
+	Poker* item = hand->head;
+	Poker* compare = item->next;
+	Poker* temp = new Poker;
+	int n = 0;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 1 + n; j < 5; j++) {
+			if (item->card > compare->card || (item->card == compare->card && SwitchSuit(item) > SwitchSuit(compare))) {
+				temp->card = compare->card;
+				temp->suit = compare->suit;
+				temp->keep = compare->keep;
+				ReplacePoker(hand, j, item->card, SwitchSuit(item), item->keep);
+				ReplacePoker(hand, i, temp->card, SwitchSuit(temp), temp->keep);
+				item = FindPoker(hand, i);
+				compare = FindPoker(hand, j);
+			}
+			compare = compare->next;
+		}
+		item = item->next;
+		compare = item->next;
+		n++;
+	}
+}
+
 void DrawPokers(Deck* deck, Deck* hand) {
 	srand(time(0));
 	for (int i = 0; i < 5; i++) {
@@ -306,6 +331,8 @@ void DrawPokers(Deck* deck, Deck* hand) {
 		AddTail(hand, card, suit, false);
 		DeletePoker(deck, item - 1);
 	}
+	PrintHand(hand);
+	SortPokers(hand);
 	PrintHand(hand);
 }
 
@@ -324,7 +351,7 @@ void Console(Deck* deck, Deck* hand) {
 		else {
 			for (char & letter : command) {
 				if (letter == 'a' || letter == 'A' || letter == 'b' || letter == 'B' || letter == 'c' || letter == 'C' || letter == 'd' || letter == 'D' || letter == 'e' || letter == 'E') {
-					KeepPokers(letter, hand, deck);
+					KeepPoker(letter, hand, deck);
 					keepask = false;
 				}
 				else {
@@ -333,14 +360,13 @@ void Console(Deck* deck, Deck* hand) {
 					break;
 				}
 			}
-			DrawNewPokers(hand, deck);
-			PrintHand(hand);
+			DrawNewPoker(hand, deck);
 			PrintCount(deck);
 		}
 	} while (keepask == true);
 }
 
-void KeepPokers(char letter, Deck* hand, Deck* deck) {
+void KeepPoker(char letter, Deck* hand, Deck* deck) {
 	int index;
 	for (int i = 0; i < 5; i++) {
 		if (letter == char('a' + i) || letter == char('A' + i)) {
@@ -351,7 +377,7 @@ void KeepPokers(char letter, Deck* hand, Deck* deck) {
 	ReplacePoker(hand, index, FindCard(hand, index), FindSuit(hand, index), true);
 }
 
-void DrawNewPokers(Deck* hand, Deck* deck) {
+void DrawNewPoker(Deck* hand, Deck* deck) {
 	Poker* item = hand->head;
 	int count = 0;
 	for (int i = 0; i < 5; i++) {
@@ -367,6 +393,9 @@ void DrawNewPokers(Deck* hand, Deck* deck) {
 		}
 		item = item->next;
 	}
+	PrintHand(hand);
+	SortPokers(hand);
+	PrintHand(hand);
 }
 
 bool EndGame() {
