@@ -40,6 +40,7 @@ void DrawPokers(Deck*, Deck*);
 void Console(Deck*, Deck*);
 void KeepPoker(char, Deck*, Deck*);
 void DrawNewPoker(Deck*, Deck*);
+void PokerHand(Deck*);
 bool EndGame();
 
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
@@ -362,6 +363,7 @@ void Console(Deck* deck, Deck* hand) {
 			}
 			DrawNewPoker(hand, deck);
 			PrintCount(deck);
+			PokerHand(hand);
 		}
 	} while (keepask == true);
 }
@@ -396,6 +398,53 @@ void DrawNewPoker(Deck* hand, Deck* deck) {
 	PrintHand(hand);
 	SortPokers(hand);
 	PrintHand(hand);
+}
+
+void PokerHand(Deck* hand) {
+	Poker* item = hand->head;
+	Poker* compare = item->next;
+	int n = 0, count = 1, pair = 0, flush = 1;
+	bool isThree = false, isFour = false, isOnePair = false;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 1 + n; j < 5; j++) {
+			if (item->card == compare->card) {
+				count++;
+				if (item->card > 10 || item->card == 1)
+					isOnePair = true;
+			}
+			if (item->suit == compare->suit)
+				flush++;
+			compare = compare->next;
+		}
+		if (count == 2)
+			pair++;
+		else if (count == 3) {
+			isThree = true;
+			break;
+		}
+		else if (count == 4) {
+			isFour = true;
+			break;
+		}
+		item = item->next;
+		compare = item->next;
+		n++;
+		count = 1;
+		if (pair == 2)
+			break;
+	}
+	if (isFour) {
+		cout << "Congratulations! You got Four of a Kind and earned $25!" << endl;
+	}
+	else if (isThree) {
+		cout << "Congratulations! You got Three of a Kind and earned $3!" << endl;
+	}
+	else if (pair == 2) {
+		cout << "Congratulations! You got Two Pair and earned $2!" << endl;
+	}
+	else if (isOnePair) {
+		cout << "Congratulations! You got One Pair and earned $1!" << endl;
+	}
 }
 
 bool EndGame() {
