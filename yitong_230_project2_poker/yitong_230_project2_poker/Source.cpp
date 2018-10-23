@@ -8,27 +8,33 @@ struct Poker {
 	int card;
 	string suit;
 	Poker* next;
+	Poker* prev;
+	bool keep = false;
 };
 
 struct Deck {
 	Poker* head;
+	Poker* tail;
 };
 
 void CurrentMoney(int);
 Deck* CreateDeck();
 void AddHead(Deck*, int, int);
 void AddTail(Deck*, int, int);
+Poker* FindPoker(Deck*, int);
 int FindCard(Deck*, int);
 int FindSuit(Deck*, int);
+int CountPokers(Deck*);
 void DeleteHead(Deck*);
-void DeleteCard(Deck*, int);
+void DeleteTail(Deck*);
+void DeletePoker(Deck*, int);
 void PrintDeck(Deck*);
 void PrintHand(Deck*);
 void RemoveDeck(Deck*);
 void StartupDeck(Deck*);
-void DrawCard(Deck*, Deck*);
-int CountCards(Deck*);
-void Console(Deck*);
+void DrawPokers(Deck*, Deck*);
+void Console(Deck*, Deck*);
+void DrawNewPokers(char, Deck*);
 bool EndGame();
 
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
@@ -43,8 +49,8 @@ int main() {
 	StartupDeck(deck);
 	CurrentMoney(money);
 	do {
-		DrawCard(deck, hand);
-		Console(deck);
+		DrawPokers(deck, hand);
+		Console(deck, hand);
 		EndGame();
 	} while (EndGame() == false);
 	
@@ -60,6 +66,7 @@ void CurrentMoney(int money) {
 Deck* CreateDeck() {
 	Deck* deck = new Deck;
 	deck->head = NULL;
+	deck->tail = NULL;
 	return deck;
 }
 
@@ -68,23 +75,60 @@ void AddHead(Deck* deck, int card, int suit) {
 	add->card = card;
 	add->suit = suits[suit];
 	add->next = deck->head;
+	add->prev = NULL;
 	deck->head = add;
 }
 
 void AddTail(Deck* deck, int card, int suit) {
-	if (deck->head == NULL) { //when the deck is empty
+	if (deck->head == NULL) {
 		AddHead(deck, card, suit);
 		return;
 	}
 	Poker* last = deck->head;
 	while (last->next != NULL) {
 		last = last->next;
-	} //find the last card in the deck
-	Poker* add = new Poker; //add the new card at the end
+	}
+	Poker* add = new Poker;
 	add->card = card;
 	add->suit = suits[suit];
 	add->next = NULL;
+	add->prev = last;
 	last->next = add;
+	deck->tail = add;
+}
+
+void AddPoker(Deck* deck, int index, int card, int suit, bool keep) {
+	if (deck->head == NULL || index == 0) {
+		AddHead(deck, card, suit);
+		return;
+	}
+	else if (index == CountPokers(deck) - 1) {
+		AddTail(deck, card, suit);
+		return;
+	}
+	Poker* temp = FindPoker(deck, index);
+	Poker* item = new Poker;
+	item->card = card;
+	item->suit = suit;
+	item->keep = keep;
+	item->next = temp;
+	item->prev = temp->prev;
+	temp->prev->next = item;
+	temp->prev = item;
+}
+
+void ReplacePoker(Deck* deck, int index, int card, int suit, bool keep) {
+	AddPoker(deck, index, card, suit, keep);
+	DeletePoker(deck, index + 1);
+}
+
+Poker* FindPoker(Deck* deck, int index) {
+	Poker* item = deck->head;
+	while (index > 0) {
+		item = item->next;
+		index--;
+	}
+	return item;
 }
 
 int FindCard(Deck* deck, int index) {
@@ -114,6 +158,16 @@ int FindSuit(Deck* deck, int index) {
 	return suit;
 }
 
+int CountPokers(Deck* deck) {
+	int count = 0;
+	Poker* item = deck->head;
+	while (item != NULL) {
+		count++;
+		item = item->next;
+	}
+	return count;
+}
+
 void DeleteHead(Deck* deck) {
 	if (deck->head == NULL) {
 		cout << "Deck already empty!" << endl;
@@ -121,21 +175,37 @@ void DeleteHead(Deck* deck) {
 	}
 	Poker* item = deck->head;
 	deck->head = item->next;
+	item->next->prev = NULL;
 	delete item;
 }
 
-void DeleteCard(Deck* deck, int index) {
-	if (index == 0) {
+void DeleteTail(Deck* deck) {
+	if (deck->head == NULL) {
+		cout << "Deck already empty!" << endl;
+		return;
+	}
+	Poker* item = deck->tail;
+	deck->tail = item->prev;
+	item->prev->next = NULL;
+	delete item;
+}
+
+void DeletePoker(Deck* deck, int index) {
+	if (deck->head == NULL) {
+		cout << "Deck already empty!" << endl;
+		return;
+	}
+	else if (index == 0) {
 		DeleteHead(deck);
 		return;
 	}
-	Poker* prev = deck->head;
-	while (index - 1 > 0) {
-		prev = prev->next;
-		index--;
+	else if (index == CountPokers(deck) - 1) {
+		DeleteTail(deck);
+		return;
 	}
-	Poker* item = prev->next;
-	prev->next = item->next;
+	Poker* item = FindPoker(deck, index);
+	item->prev->next = item->next;
+	item->next->prev = item->prev;
 	delete item;
 }
 
@@ -166,7 +236,10 @@ void PrintDeck(Deck* deck) {
 void PrintHand(Deck* hand) {
 	Poker* item = hand->head;
 	cout << "Your hand: " << endl;
+	char letter = 'A';
+	int i = 0;
 	while (item != NULL) {
+		cout << char(letter + i) << ". ";
 		if (item->card == 1) {
 			cout << "Ace" << " of " << item->suit;
 		}
@@ -181,11 +254,15 @@ void PrintHand(Deck* hand) {
 		}
 		else
 			cout << item->card << " of " << item->suit;
+		if (item->keep == true) {
+			cout << " (Kept)";
+		}
 		if (item->next != NULL)
 			cout << ";" << endl;
 		else
 			cout << "." << endl;
 		item = item->next;
+		i++;
 	}
 	cout << endl << endl;
 }
@@ -208,30 +285,21 @@ void StartupDeck(Deck* deck) {
 	}
 }
 
-void DrawCard(Deck* deck, Deck* hand) {
+void DrawPokers(Deck* deck, Deck* hand) {
 	srand(time(0));
 	for (int i = 0; i < 5; i++) {
 		int item = 1 + (rand() % (52 - i));
 		int card = FindCard(deck, item - 1);
 		int suit = FindSuit(deck, item - 1);
 		AddTail(hand, card, suit);
-		DeleteCard(deck, item - 1);
+		DeletePoker(deck, item - 1);
 	}
 	PrintHand(hand);
 }
 
-int CountCards(Deck* deck) {
-	int count = 0;
-	Poker* item = deck->head;
-	while (item != NULL) {
-		count++;
-		item = item->next;
-	}
-	return count;
-}
-
-void Console(Deck* deck) {
+void Console(Deck* deck, Deck* hand) {
 	cout << "Type 'deck' to view the cards in deck." << endl;
+	cout << endl;
 	string command;
 	bool keepask = true;
 	do {
@@ -241,9 +309,33 @@ void Console(Deck* deck) {
 			PrintDeck(deck);
 			keepask = false;
 		}
-		else
-			cout << "Please type valid command." << endl;	
+		else {
+			for (char & letter : command) {
+				if (letter == 'a' || letter == 'A' || letter == 'b' || letter == 'B' || letter == 'c' || letter == 'C' || letter == 'd' || letter == 'D' || letter == 'e' || letter == 'E') {
+					DrawNewPokers(letter, hand);
+					keepask = false;
+				}
+				else {
+					cout << "Please type valid command." << endl;
+					keepask = true;
+					break;
+				}
+			}
+		}
 	} while (keepask == true);
+}
+
+void DrawNewPokers(char letter, Deck* hand) {
+	int index;
+	for (int i = 0; i < 5; i++) {
+		if (letter == char('a' + i) || letter == char('A' + i)) {
+			index = i;
+		}
+	}
+	Poker* item = new Poker;
+	item->card = FindCard(hand, index);
+	item->suit = FindSuit(hand, index);
+	ReplacePoker(hand, index, item->card, item->suit, true);
 }
 
 bool EndGame() {
