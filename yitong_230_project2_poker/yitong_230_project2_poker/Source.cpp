@@ -409,9 +409,11 @@ void Console(Deck* deck, Deck* hand) {
 			char swapIndex, swapSuit;
 			int swapCard, suitIndex, index;
 			bool askAgain1 = false, askAgain2 = false, askAgain3 = false;
+			//which card
 			cout << "Which card in hand do you want to switch?" << endl;
 			do {
 				cin >> swapIndex;
+				askAgain1 = false;
 				if (swapIndex == 'a' || swapIndex == 'A' || swapIndex == 'b' || swapIndex == 'B' || swapIndex == 'c' || swapIndex == 'C' || swapIndex == 'd' || swapIndex == 'D' || swapIndex == 'e' || swapIndex == 'E') {
 					for (int i = 0; i < 5; i++) {
 						if (swapIndex == char('a' + i) || swapIndex == char('A' + i)) {
@@ -424,17 +426,30 @@ void Console(Deck* deck, Deck* hand) {
 				else {
 					askAgain1 = true;
 					cout << "Please type valid index." << endl;
+					cin.clear();
+					cin.ignore(10000, '\n');
 				}
 			} while (askAgain1 == true);
+			cin.clear();
+			cin.ignore(10000, '\n');
+			//which number
 			cout << "What number do you want?" << endl;
 			do {
 				cin >> swapCard;
 				askAgain2 = false;
+				while (!cin.good()) {
+					cout << "Please type valid number." << endl;
+					cin.clear();
+					cin.ignore(10000, '\n');
+					cin >> swapCard;
+				}
+				cin.ignore(10000, '\n');
 				if (swapCard > 13 || swapCard <= 0) {
 					askAgain2 = true;
 					cout << "Please type valid number." << endl;
 				}
 			} while (askAgain2 == true);
+			//which suit
 			cout << "What suit do you want?" << endl;
 			cout << "(d = Diamonds, c = Clubs, s = Spades, h = Hearts)" << endl;
 			do {
@@ -459,7 +474,7 @@ void Console(Deck* deck, Deck* hand) {
 			} while (askAgain3 == true);
 			keepask = false;
 		}
-		else {
+		else { //select the cards you want to keep
 			for (char & letter : command) {
 				if (letter == 'a' || letter == 'A' || letter == 'b' || letter == 'B' || letter == 'c' || letter == 'C' || letter == 'd' || letter == 'D' || letter == 'e' || letter == 'E') {
 					KeepPoker(letter, hand, deck);
