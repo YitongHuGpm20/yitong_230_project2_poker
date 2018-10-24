@@ -47,6 +47,7 @@ bool EndGame(Deck*);
 
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
 int money = 5;
+bool exitGame = false;
 
 int main() {
 	Deck* deck = CreateDeck();
@@ -63,7 +64,7 @@ int main() {
 		if (EndGame(hand) == true)
 			cout << "Game is Overrrrrrrrrrrrrr~" << endl;
 		system("pause");
-	} while (EndGame(hand) == false);
+	} while (EndGame(hand) == false && exitGame == false);
 	return 0;
 }
 
@@ -373,7 +374,12 @@ void DrawPokers(Deck* deck, Deck* hand) {
 }
 
 void Console(Deck* deck, Deck* hand) {
-	cout << "Type 'deck' to view the cards in deck." << endl;
+	cout << "- Type the letters of the cards that you want to keep." << endl;
+	cout << "- Type 'deck' to view the cards in deck." << endl;
+	cout << "- Type 'none' to discard all cards in hand." << endl;
+	cout << "- Type 'all' to keep all cards in hand." << endl;
+	cout << "- Type 'exit' to exit the game." << endl;
+	cout << "- Type 'swap' to switch the cards in hand.[CHEATING]" << endl;
 	cout << endl;
 	string command;
 	bool keepask = true;
@@ -382,6 +388,75 @@ void Console(Deck* deck, Deck* hand) {
 		cin >> command;
 		if (command == "deck" || command == "Deck" || command == "DECK") {
 			PrintDeck(deck);
+			keepask = false;
+		}
+		else if (command == "none" || command == "None" || command == "NONE") {
+			DrawNewPoker(hand, deck);
+			keepask = false;
+		}
+		else if (command == "all" || command == "All" || command == "ALL") {
+			for (int i = 0; i < 5; i++) {
+				ReplacePoker(hand, i, FindCard(hand, i), FindSuit(hand, i), true);
+			}
+			DrawNewPoker(hand, deck);
+			keepask = false;
+		}
+		else if (command == "exit" || command == "Exit" || command == "EXIT") {
+			exitGame = true;
+			keepask = false;
+		}
+		else if (command == "swap" || command == "Swap" || command == "SWAP") {
+			char swapIndex, swapSuit;
+			int swapCard, suitIndex, index;
+			bool askAgain1 = false, askAgain2 = false, askAgain3 = false;
+			cout << "Which card in hand do you want to switch?" << endl;
+			do {
+				cin >> swapIndex;
+				if (swapIndex == 'a' || swapIndex == 'A' || swapIndex == 'b' || swapIndex == 'B' || swapIndex == 'c' || swapIndex == 'C' || swapIndex == 'd' || swapIndex == 'D' || swapIndex == 'e' || swapIndex == 'E') {
+					for (int i = 0; i < 5; i++) {
+						if (swapIndex == char('a' + i) || swapIndex == char('A' + i)) {
+							index = i;
+							askAgain1 = false;
+							break;
+						}
+					}
+				}
+				else {
+					askAgain1 = true;
+					cout << "Please type valid index." << endl;
+				}
+			} while (askAgain1 == true);
+			cout << "What number do you want?" << endl;
+			do {
+				cin >> swapCard;
+				askAgain2 = false;
+				if (swapCard > 13 || swapCard <= 0) {
+					askAgain2 = true;
+					cout << "Please type valid number." << endl;
+				}
+			} while (askAgain2 == true);
+			cout << "What suit do you want?" << endl;
+			cout << "(d = Diamonds, c = Clubs, s = Spades, h = Hearts)" << endl;
+			do {
+				cin >> swapSuit;
+				askAgain3 = false;
+				if (swapSuit == 'd' || swapSuit == 'D') {
+					suitIndex = 0;
+				}
+				else if (swapSuit == 'c' || swapSuit == 'C') {
+					suitIndex = 1;
+				}
+				else if (swapSuit == 's' || swapSuit == 'S') {
+					suitIndex = 2;
+				}
+				else if (swapSuit == 'h' || swapSuit == 'H') {
+					suitIndex = 3;
+				}
+				else {
+					askAgain3 = true;
+					cout << "Please type valid suit." << endl;
+				}
+			} while (askAgain3 == true);
 			keepask = false;
 		}
 		else {
