@@ -37,16 +37,16 @@ void PrintHand(Deck*);
 void RemoveDeck(Deck*);
 void StartupDeck(Deck*);
 void SortPokers(Deck*);
+void RecreateDeck(Deck*, Deck*);
 void DrawPokers(Deck*, Deck*);
 void Console(Deck*, Deck*);
 void KeepPoker(char, Deck*, Deck*);
 void DrawNewPoker(Deck*, Deck*);
 void PokerHand(Deck*);
-bool EndGame();
+bool EndGame(Deck*);
 
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
 int money = 5;
-bool isNewGame = true;
 
 int main() {
 	Deck* deck = CreateDeck();
@@ -54,18 +54,16 @@ int main() {
 	system("color f1");
 	StartupDeck(deck);
 	do {
-		
-		//CurrentMoney();
+		system("cls");
+		CurrentMoney();
+		RecreateDeck(deck, hand);
 		DrawPokers(deck, hand);
 		PrintCount(deck);
 		Console(deck, hand);
-		EndGame();
+		if (EndGame(hand) == true)
+			cout << "Game is Overrrrrrrrrrrrrr~" << endl;
 		system("pause");
-		system("cls");
-		isNewGame = false;
-	} while (EndGame() == false);
-	
-	system("pause");
+	} while (EndGame(hand) == false);
 	return 0;
 }
 
@@ -204,6 +202,13 @@ void DeleteTail(Deck* deck) {
 		cout << "Deck already empty!" << endl;
 		return;
 	}
+	else if (CountPokers(deck) == 1) {
+		Poker* item = deck->tail;
+		deck->tail = NULL;
+		deck->head = NULL;
+		delete item;
+		return;
+	}
 	Poker* item = deck->tail;
 	deck->tail = item->prev;
 	item->prev->next = NULL;
@@ -329,16 +334,38 @@ void SortPokers(Deck* hand) {
 	}
 }
 
+void RecreateDeck(Deck* deck, Deck* hand) {
+	if (CountPokers(deck) <= 5) {
+		while(deck->head != NULL) {
+			DeleteTail(deck);
+		}
+		StartupDeck(deck);
+		if (CountPokers(hand) != 0) {
+			int n = 0;
+			Poker* minus = hand->head;
+			for (int i = 0; i < 5; i++) {
+				Poker* item = deck->head;
+				for (int j = 0; j < 52 - n; j++) {
+					if (minus->card == item->card && minus->suit == item->suit) {
+						DeletePoker(deck, j);
+						n++;
+						item = FindPoker(deck, j - 1);
+					}
+					item = item->next;
+				}
+				minus = minus->next;
+			}
+		}
+	}
+}
+
 void DrawPokers(Deck* deck, Deck* hand) {
 	srand(time(0));
 	for (int i = 0; i < 5; i++) {
 		int item = 1 + (rand() % (CountPokers(deck) - i));
 		int card = FindCard(deck, item - 1);
 		int suit = FindSuit(deck, item - 1);
-		if (isNewGame == true)
-			AddTail(hand, card, suit, false);
-		else
-			ReplacePoker(hand, i, card, suit, false);
+		AddTail(hand, card, suit, false);
 		DeletePoker(deck, item - 1);
 	}
 	SortPokers(hand);
@@ -369,6 +396,7 @@ void Console(Deck* deck, Deck* hand) {
 					break;
 				}
 			}
+			RecreateDeck(deck, hand);
 			DrawNewPoker(hand, deck);
 		}
 	} while (keepask == true);
@@ -404,8 +432,8 @@ void DrawNewPoker(Deck* hand, Deck* deck) {
 	SortPokers(hand);
 	system("cls");
 	cout << "Welcome to Yitong Hu's Video Poker Game!!!" << endl;
-	cout << "You start with $5." << endl;
-	CurrentMoney();
+	cout << "You start with $" << money + 1 << "." << endl;
+	cout << "You payed $1 and currently have $" << money << "." << endl << endl;
 	PrintHand(hand);
 	PrintCount(deck);
 	PokerHand(hand);
@@ -417,6 +445,10 @@ void PokerHand(Deck* hand) {
 	int n = 0, count = 1, pair = 0, flush = 1;
 	bool isThree = false, isFour = false, isOnePair = false;
 	for (int i = 0; i < 4; i++) {
+		if (flush == 5)
+			break;
+		else
+			flush = 1;
 		for (int j = 1 + n; j < 5; j++) {
 			if (item->card == compare->card) {
 				count++;
@@ -443,8 +475,6 @@ void PokerHand(Deck* hand) {
 		count = 1;
 		if (pair == 2)
 			break;
-		if (flush == 5)
-			break;
 	}
 	if (isFour) {
 		cout << "Congratulations! You got Four of a Kind and earned $25!" << endl << endl;
@@ -470,9 +500,13 @@ void PokerHand(Deck* hand) {
 		cout << "Oh you lost! No money for you!" << endl << endl;
 }
 
-bool EndGame() {
+bool EndGame(Deck* hand) {
 	if (money == 0)
 		return true;
-	else
+	else {
+		while (CountPokers(hand) != 0) {
+			DeleteTail(hand);
+		}
 		return false;
+	}
 }
