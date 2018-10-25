@@ -408,7 +408,7 @@ void Console(Deck* deck, Deck* hand) {
 		cin >> command;
 		if (command == "deck" || command == "Deck" || command == "DECK") {
 			PrintDeck(deck);
-			keepask = false;
+			keepask = true;
 		}
 		else if (command == "none" || command == "None" || command == "NONE") {
 			DrawNewPoker(hand, deck);
@@ -539,7 +539,7 @@ void Console(Deck* deck, Deck* hand) {
 			SortPokers(hand);
 			PrintHand(hand);
 			PrintCount(deck);
-			keepask = false;
+			keepask = true;
 		}
 		else { //select the cards you want to keep
 			for (char & letter : command) {
@@ -555,12 +555,12 @@ void Console(Deck* deck, Deck* hand) {
 					keepask = false;
 				}
 			}
-			RecreateDeck(deck, hand);
-			DrawNewPoker(hand, deck);
+			//RecreateDeck(deck, hand);
+			//DrawNewPoker(hand, deck);
 		}
 	} while (keepask == true);
-	//RecreateDeck(deck, hand);
-	//DrawNewPoker(hand, deck);
+	RecreateDeck(deck, hand);
+	DrawNewPoker(hand, deck);
 }
 
 void KeepPoker(char letter, Deck* hand, Deck* deck) {
