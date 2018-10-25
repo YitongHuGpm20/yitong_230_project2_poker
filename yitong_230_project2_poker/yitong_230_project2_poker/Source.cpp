@@ -50,6 +50,7 @@ void RecreateDeck(Deck*, Deck*);
 void DrawPokers(Deck*, Deck*);
 void Console(Deck*, Deck*);
 void KeepPoker(char, Deck*, Deck*);
+void RemoveKept(Deck*);
 void DrawNewPoker(Deck*, Deck*);
 void PokerHand(Deck*);
 bool EndGame(Deck*, Deck*);
@@ -543,6 +544,7 @@ void Console(Deck* deck, Deck* hand) {
 			for (char & letter : command) {
 				if (letter != 'a' && letter != 'A' && letter != 'b' && letter != 'B' && letter != 'c' && letter != 'C' && letter != 'd' && letter != 'D' && letter != 'e' && letter != 'E') {
 					cout << "Please type valid command." << endl;
+					RemoveKept(hand);
 					keepask = true;
 					break;
 				}
@@ -551,16 +553,6 @@ void Console(Deck* deck, Deck* hand) {
 					exitConsole = true;
 					keepask = false;
 				}
-				/*if (letter == 'a' || letter == 'A' || letter == 'b' || letter == 'B' || letter == 'c' || letter == 'C' || letter == 'd' || letter == 'D' || letter == 'e' || letter == 'E') {
-					KeepPoker(letter, hand, deck);
-					exitConsole = true;
-					keepask = false;
-				}
-				else {
-					cout << "Please type valid command." << endl;
-					keepask = true;
-					break;
-				}*/
 			}
 			RecreateDeck(deck, hand);
 			DrawNewPoker(hand, deck);
@@ -577,6 +569,18 @@ void KeepPoker(char letter, Deck* hand, Deck* deck) {
 		}
 	}
 	ReplacePoker(hand, index, FindCard(hand, index), FindSuit(hand, index), true);
+}
+
+void RemoveKept(Deck* hand) {
+	Poker* item = hand->head;
+	for (int i = 0; i < 5; i++) {
+		if (item->keep == true) {
+			ReplacePoker(hand, i, item->card, SwitchSuit(item), false);
+			item = FindPoker(hand, i);
+		}
+			
+		item = item->next;
+	}
 }
 
 void DrawNewPoker(Deck* hand, Deck* deck) {
@@ -630,7 +634,6 @@ void PokerHand(Deck* hand) {
 			pair++;
 		else if (count == 3) {
 			isThree = true;
-			break;
 		}
 		else if (count == 4) {
 			isFour = true;
@@ -640,16 +643,22 @@ void PokerHand(Deck* hand) {
 		compare = item->next;
 		n++;
 		count = 1;
-		if (pair == 2)
+		if (pair == 2) {
+			isOnePair = false;
 			break;
+		}
 	}
 	if (isFour) {
 		cout << "Congratulations! You got Four of a Kind and earned $25!" << endl << endl;
 		money += 25;
 	}
-	else if (isThree) {
+	else if (isThree && pair == 0) {
 		cout << "Congratulations! You got Three of a Kind and earned $3!" << endl << endl;
 		money += 3;
+	}
+	else if (isThree && pair == 1) {
+		cout << "Congratulations! You got Full House and earned $9!" << endl << endl;
+		money += 9;
 	}
 	else if (pair == 2) {
 		cout << "Congratulations! You got Two Pair and earned $2!" << endl << endl;
