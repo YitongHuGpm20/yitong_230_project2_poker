@@ -617,7 +617,7 @@ void PokerHand(Deck* hand) {
 	Poker* item = hand->head;
 	Poker* compare = item->next;
 	int n = 0, count = 1, pair = 0, flush = 1;
-	bool isThree = false, isFour = false, isOnePair = false, isStraight = false;
+	bool isThree = false, isFour = false, isOnePair = false, isStraight = false, isRoyal = false;
 	for (int i = 0; i < 4; i++) {
 		if (flush == 5)
 			break;
@@ -659,6 +659,9 @@ void PokerHand(Deck* hand) {
 			break;
 		}
 	}
+	if (FindCard(hand, 0) == 1 && FindCard(hand, 1) == 10 && FindCard(hand, 2) == 11 && FindCard(hand, 3) == 12 && FindCard(hand, 4) == 13) {
+		isRoyal = true;
+	}
 	if (isFour) {
 		cout << "Congratulations! You got Four of a Kind and earned $25!" << endl << endl;
 		money += 25;
@@ -679,15 +682,15 @@ void PokerHand(Deck* hand) {
 		cout << "Congratulations! You got One Pair and earned $1!" << endl << endl;
 		money += 1;
 	}
-	else if (flush == 5) {
+	else if (!isStraight && flush == 5 && !isRoyal) {
 		cout << "Congratulations! You got Flush and earned $6!" << endl << endl;
 		money += 6;
 	}
-	else if (isStraight && flush == 5 && hand->head->card != 10) {
+	else if (isStraight && flush == 5) {
 		cout << "Congratulations! You got Straight Flush and earned $50!" << endl << endl;
 		money += 50;
 	}
-	else if (isStraight && flush == 5 && hand->head->card == 10) {
+	else if (isRoyal && flush == 5) {
 		cout << "Congratulations! You got Royal Flush and earned $800!" << endl << endl;
 		money += 800;
 	}
