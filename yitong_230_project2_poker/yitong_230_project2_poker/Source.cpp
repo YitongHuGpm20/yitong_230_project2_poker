@@ -48,6 +48,7 @@ bool EndGame(Deck*);
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
 int money = 5;
 bool exitGame = false;
+bool exitConsole = false;
 
 int main() {
 	Deck* deck = CreateDeck();
@@ -60,7 +61,10 @@ int main() {
 		RecreateDeck(deck, hand);
 		DrawPokers(deck, hand);
 		PrintCount(deck);
-		Console(deck, hand);
+		do {
+			exitConsole = false;
+			Console(deck, hand);
+		} while (exitConsole == false);
 		if (EndGame(hand) == true)
 			cout << "Game is Overrrrrrrrrrrrrr~" << endl;
 		system("pause");
@@ -344,7 +348,7 @@ void RecreateDeck(Deck* deck, Deck* hand) {
 		if (CountPokers(hand) != 0) {
 			int n = 0;
 			Poker* minus = hand->head;
-			for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < CountPokers(hand); i++) {
 				Poker* item = deck->head;
 				for (int j = 0; j < 52 - n; j++) {
 					if (minus->card == item->card && minus->suit == item->suit) {
@@ -363,6 +367,7 @@ void RecreateDeck(Deck* deck, Deck* hand) {
 void DrawPokers(Deck* deck, Deck* hand) {
 	srand(time(0));
 	for (int i = 0; i < 5; i++) {
+		RecreateDeck(deck, hand);
 		int item = 1 + (rand() % (CountPokers(deck) - i));
 		int card = FindCard(deck, item - 1);
 		int suit = FindSuit(deck, item - 1);
@@ -393,6 +398,7 @@ void Console(Deck* deck, Deck* hand) {
 		else if (command == "none" || command == "None" || command == "NONE") {
 			DrawNewPoker(hand, deck);
 			keepask = false;
+			exitConsole = true;
 		}
 		else if (command == "all" || command == "All" || command == "ALL") {
 			for (int i = 0; i < 5; i++) {
@@ -400,10 +406,12 @@ void Console(Deck* deck, Deck* hand) {
 			}
 			DrawNewPoker(hand, deck);
 			keepask = false;
+			exitConsole = true;
 		}
 		else if (command == "exit" || command == "Exit" || command == "EXIT") {
 			exitGame = true;
 			keepask = false;
+			exitConsole = true;
 		}
 		else if (command == "swap" || command == "Swap" || command == "SWAP") {
 			char swapIndex, swapSuit;
@@ -470,14 +478,36 @@ void Console(Deck* deck, Deck* hand) {
 				else {
 					askAgain3 = true;
 					cout << "Please type valid suit." << endl;
+					cin.clear();
+					cin.ignore(10000, '\n');
 				}
 			} while (askAgain3 == true);
+			cin.clear();
+			cin.ignore(10000, '\n');
+			//now you can swap the card
+			Poker* temp = FindPoker(hand, index);
+			ReplacePoker(hand, index, swapCard, suitIndex, false);
+			Poker* find = deck->head;
+			int n;
+			for (int i = 0; i < CountPokers(deck); i++) {
+				if (find->card == swapCard || find->suit == suits[suitIndex]) {
+					n = i;
+					break;
+				}
+				find = find->next;
+			}
+			ReplacePoker(deck, n, temp->card, SwitchSuit(temp), false);
+			system("cls");
+			CurrentMoney();
+			PrintHand(hand);
+			PrintCount(deck);
 			keepask = false;
 		}
 		else { //select the cards you want to keep
 			for (char & letter : command) {
 				if (letter == 'a' || letter == 'A' || letter == 'b' || letter == 'B' || letter == 'c' || letter == 'C' || letter == 'd' || letter == 'D' || letter == 'e' || letter == 'E') {
 					KeepPoker(letter, hand, deck);
+					exitConsole = true;
 					keepask = false;
 				}
 				else {
@@ -509,6 +539,7 @@ void DrawNewPoker(Deck* hand, Deck* deck) {
 	for (int i = 0; i < 5; i++) {
 		if (item->keep == false) {
 			srand(time(0));
+			RecreateDeck(deck, hand);
 			int draw = 1 + (rand() % (CountPokers(deck) - count));
 			int card = FindCard(deck, draw - 1);
 			int suit = FindSuit(deck, draw - 1);
