@@ -1,8 +1,17 @@
-﻿#include<iostream>
+﻿#define _CRTDBG_MAP_ALLOC
+#define _CRTDBG_MAP_ALLOC_NEW
+#include <cstdlib>
+#include <crtdbg.h>
+#include<iostream>
 #include<string>
-#include<cstdlib>
 #include<ctime>
 #include<limits>
+#ifdef _DEBUG
+#ifndef DBG_NEW
+#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+#define new DBG_NEW
+#endif
+#endif
 using namespace std;
 
 struct Poker {
@@ -43,7 +52,7 @@ void Console(Deck*, Deck*);
 void KeepPoker(char, Deck*, Deck*);
 void DrawNewPoker(Deck*, Deck*);
 void PokerHand(Deck*);
-bool EndGame(Deck*);
+bool EndGame(Deck*, Deck*);
 
 string suits[4] = { "Diamonds", "Clubs", "Spades", "Hearts" };
 int money = 5;
@@ -51,6 +60,8 @@ bool exitGame = false;
 bool exitConsole = false;
 
 int main() {
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF |
+		_CRTDBG_LEAK_CHECK_DF);
 	Deck* deck = CreateDeck();
 	Deck* hand = CreateDeck();
 	system("color f1");
@@ -65,10 +76,12 @@ int main() {
 			exitConsole = false;
 			Console(deck, hand);
 		} while (exitConsole == false);
-		if (EndGame(hand) == true)
+		if (EndGame(hand, deck) == true)
 			cout << "Game is Overrrrrrrrrrrrrr~" << endl;
 		system("pause");
-	} while (EndGame(hand) == false && exitGame == false);
+	} while (EndGame(hand, deck) == false && exitGame == false);
+	RemoveDeck(hand);
+	RemoveDeck(deck);
 	return 0;
 }
 
@@ -337,6 +350,7 @@ void SortPokers(Deck* hand) {
 		compare = item->next;
 		n++;
 	}
+	delete temp;
 }
 
 void RecreateDeck(Deck* deck, Deck* hand) {
@@ -417,86 +431,108 @@ void Console(Deck* deck, Deck* hand) {
 			char swapIndex, swapSuit;
 			int swapCard, suitIndex, index;
 			bool askAgain1 = false, askAgain2 = false, askAgain3 = false;
-			//which card
-			cout << "Which card in hand do you want to switch?" << endl;
+			bool swapAgain = false;
 			do {
-				cin >> swapIndex;
-				askAgain1 = false;
-				if (swapIndex == 'a' || swapIndex == 'A' || swapIndex == 'b' || swapIndex == 'B' || swapIndex == 'c' || swapIndex == 'C' || swapIndex == 'd' || swapIndex == 'D' || swapIndex == 'e' || swapIndex == 'E') {
-					for (int i = 0; i < 5; i++) {
-						if (swapIndex == char('a' + i) || swapIndex == char('A' + i)) {
-							index = i;
-							askAgain1 = false;
-							break;
+				//which card
+				cout << "Which card in hand do you want to switch?" << endl;
+				do {
+					cin >> swapIndex;
+					askAgain1 = false;
+					if (swapIndex == 'a' || swapIndex == 'A' || swapIndex == 'b' || swapIndex == 'B' || swapIndex == 'c' || swapIndex == 'C' || swapIndex == 'd' || swapIndex == 'D' || swapIndex == 'e' || swapIndex == 'E') {
+						for (int i = 0; i < 5; i++) {
+							if (swapIndex == char('a' + i) || swapIndex == char('A' + i)) {
+								index = i;
+								askAgain1 = false;
+								break;
+							}
 						}
 					}
-				}
-				else {
-					askAgain1 = true;
-					cout << "Please type valid index." << endl;
-					cin.clear();
-					cin.ignore(10000, '\n');
-				}
-			} while (askAgain1 == true);
-			cin.clear();
-			cin.ignore(10000, '\n');
-			//which number
-			cout << "What number do you want?" << endl;
-			do {
-				cin >> swapCard;
-				askAgain2 = false;
-				while (!cin.good()) {
-					cout << "Please type valid number." << endl;
-					cin.clear();
-					cin.ignore(10000, '\n');
-					cin >> swapCard;
-				}
+					else {
+						askAgain1 = true;
+						cout << "Please type valid index." << endl;
+						cin.clear();
+						cin.ignore(10000, '\n');
+					}
+				} while (askAgain1 == true);
+				cin.clear();
 				cin.ignore(10000, '\n');
-				if (swapCard > 13 || swapCard <= 0) {
-					askAgain2 = true;
-					cout << "Please type valid number." << endl;
-				}
-			} while (askAgain2 == true);
-			//which suit
-			cout << "What suit do you want?" << endl;
-			cout << "(d = Diamonds, c = Clubs, s = Spades, h = Hearts)" << endl;
-			do {
-				cin >> swapSuit;
-				askAgain3 = false;
-				if (swapSuit == 'd' || swapSuit == 'D') {
-					suitIndex = 0;
-				}
-				else if (swapSuit == 'c' || swapSuit == 'C') {
-					suitIndex = 1;
-				}
-				else if (swapSuit == 's' || swapSuit == 'S') {
-					suitIndex = 2;
-				}
-				else if (swapSuit == 'h' || swapSuit == 'H') {
-					suitIndex = 3;
-				}
-				else {
-					askAgain3 = true;
-					cout << "Please type valid suit." << endl;
-					cin.clear();
+				//which number
+				cout << "What number do you want?" << endl;
+				do {
+					cin >> swapCard;
+					askAgain2 = false;
+					while (!cin.good()) {
+						cout << "Please type valid number." << endl;
+						cin.clear();
+						cin.ignore(10000, '\n');
+						cin >> swapCard;
+					}
 					cin.ignore(10000, '\n');
+					if (swapCard > 13 || swapCard <= 0) {
+						askAgain2 = true;
+						cout << "Please type valid number." << endl;
+					}
+				} while (askAgain2 == true);
+				//which suit
+				cout << "What suit do you want?" << endl;
+				cout << "(d = Diamonds, c = Clubs, s = Spades, h = Hearts)" << endl;
+				swapAgain = false;
+				do {
+					cin >> swapSuit;
+					askAgain3 = false;
+					if (swapSuit == 'd' || swapSuit == 'D') {
+						suitIndex = 0;
+					}
+					else if (swapSuit == 'c' || swapSuit == 'C') {
+						suitIndex = 1;
+					}
+					else if (swapSuit == 's' || swapSuit == 'S') {
+						suitIndex = 2;
+					}
+					else if (swapSuit == 'h' || swapSuit == 'H') {
+						suitIndex = 3;
+					}
+					else {
+						askAgain3 = true;
+						cout << "Please type valid suit." << endl;
+						cin.clear();
+						cin.ignore(10000, '\n');
+					}
+				} while (askAgain3 == true);
+				cin.clear();
+				cin.ignore(10000, '\n');
+				//now you can swap the card
+				Poker* check = hand->head;
+				for (int i = 0; i < 5; i++) { //check if swap card already in hand
+					if (check->card == swapCard && check->suit == suits[suitIndex]) {
+						cout << "This card is already in your hand." << endl;
+						cout << "Please try another one." << endl;
+						swapAgain = true;
+						break;
+					}
+					check = check->next;
 				}
-			} while (askAgain3 == true);
-			cin.clear();
-			cin.ignore(10000, '\n');
-			//now you can swap the card
+			} while (swapAgain == true);
 			Poker* temp = FindPoker(hand, index);
+			int testCard = temp->card;
+			int testSuit = SwitchSuit(temp);
 			ReplacePoker(hand, index, swapCard, suitIndex, false);
 			Poker* find = deck->head;
-			int n;
+			int n = 0;
+			bool findCard = false;
 			for (int i = 0; i < CountPokers(deck); i++) {
-				if (find->card == swapCard || find->suit == suits[suitIndex]) {
+				if (find->card == swapCard && find->suit == suits[suitIndex]) {
 					n = i;
+					findCard = true;
 					break;
 				}
 				find = find->next;
 			}
-			ReplacePoker(deck, n, temp->card, SwitchSuit(temp), false);
+			if (findCard == false) { //card not in hand and deck
+				AddTail(deck, testCard, testSuit, false);
+			}
+			else
+				ReplacePoker(deck, n, testCard, testSuit, false);
 			system("cls");
 			CurrentMoney();
 			PrintHand(hand);
@@ -505,7 +541,17 @@ void Console(Deck* deck, Deck* hand) {
 		}
 		else { //select the cards you want to keep
 			for (char & letter : command) {
-				if (letter == 'a' || letter == 'A' || letter == 'b' || letter == 'B' || letter == 'c' || letter == 'C' || letter == 'd' || letter == 'D' || letter == 'e' || letter == 'E') {
+				if (letter != 'a' && letter != 'A' && letter != 'b' && letter != 'B' && letter != 'c' && letter != 'C' && letter != 'd' && letter != 'D' && letter != 'e' && letter != 'E') {
+					cout << "Please type valid command." << endl;
+					keepask = true;
+					break;
+				}
+				else {
+					KeepPoker(letter, hand, deck);
+					exitConsole = true;
+					keepask = false;
+				}
+				/*if (letter == 'a' || letter == 'A' || letter == 'b' || letter == 'B' || letter == 'c' || letter == 'C' || letter == 'd' || letter == 'D' || letter == 'e' || letter == 'E') {
 					KeepPoker(letter, hand, deck);
 					exitConsole = true;
 					keepask = false;
@@ -514,7 +560,7 @@ void Console(Deck* deck, Deck* hand) {
 					cout << "Please type valid command." << endl;
 					keepask = true;
 					break;
-				}
+				}*/
 			}
 			RecreateDeck(deck, hand);
 			DrawNewPoker(hand, deck);
@@ -621,9 +667,12 @@ void PokerHand(Deck* hand) {
 		cout << "Oh you lost! No money for you!" << endl << endl;
 }
 
-bool EndGame(Deck* hand) {
-	if (money == 0)
+bool EndGame(Deck* hand, Deck* deck) {
+	if (money == 0) {
+		
 		return true;
+	}
+		
 	else {
 		while (CountPokers(hand) != 0) {
 			DeleteTail(hand);
