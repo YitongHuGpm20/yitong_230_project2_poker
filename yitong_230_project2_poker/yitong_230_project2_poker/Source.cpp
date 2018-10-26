@@ -394,16 +394,16 @@ void DrawPokers(Deck* deck, Deck* hand) {
 }
 
 void Console(Deck* deck, Deck* hand) {
-	cout << "- Type the letters of the cards that you want to keep." << endl;
-	cout << "- Type 'deck' to view the cards in deck." << endl;
-	cout << "- Type 'none' to discard all cards in hand." << endl;
-	cout << "- Type 'all' to keep all cards in hand." << endl;
-	cout << "- Type 'exit' to exit the game." << endl;
-	cout << "- Type 'swap' to switch the cards in hand.[CHEATING]" << endl;
-	cout << endl;
 	string command;
 	bool keepask = true;
 	do {
+		cout << "- Type the letters of the cards that you want to keep." << endl;
+		cout << "- Type 'deck' to view the cards in deck." << endl;
+		cout << "- Type 'none' to discard all cards in hand." << endl;
+		cout << "- Type 'all' to keep all cards in hand." << endl;
+		cout << "- Type 'exit' to exit the game." << endl;
+		cout << "- Type 'swap' to switch the cards in hand.[CHEATING]" << endl;
+		cout << endl;
 		cout << "Input command: ";
 		cin >> command;
 		if (command == "deck" || command == "Deck" || command == "DECK") {
@@ -555,12 +555,12 @@ void Console(Deck* deck, Deck* hand) {
 					keepask = false;
 				}
 			}
-			//RecreateDeck(deck, hand);
-			//DrawNewPoker(hand, deck);
 		}
 	} while (keepask == true);
-	RecreateDeck(deck, hand);
-	DrawNewPoker(hand, deck);
+	if (!exitGame) {
+		RecreateDeck(deck, hand);
+		DrawNewPoker(hand, deck);
+	}
 }
 
 void KeepPoker(char letter, Deck* hand, Deck* deck) {
@@ -618,6 +618,7 @@ void PokerHand(Deck* hand) {
 	Poker* compare = item->next;
 	int n = 0, count = 1, pair = 0, flush = 1;
 	bool isThree = false, isFour = false, isOnePair = false, isStraight = false, isRoyal = false;
+	bool isFullHouse = false, maybeFullHouse = false;
 	for (int i = 0; i < 4; i++) {
 		if (flush == 5)
 			break;
@@ -628,6 +629,12 @@ void PokerHand(Deck* hand) {
 				count++;
 				if (item->card > 10 || item->card == 1)
 					isOnePair = true;
+				if (count == 3) {
+					if (j == 4 && FindCard(hand, 0) == FindCard(hand, 1)) 
+						isFullHouse = true;
+					else if (j == 2)
+						maybeFullHouse = true;
+				}
 			}
 			if (item->suit == compare->suit)
 				flush++;
@@ -666,13 +673,13 @@ void PokerHand(Deck* hand) {
 		cout << "Congratulations! You got Four of a Kind and earned $25!" << endl << endl;
 		money += 25;
 	}
-	else if (isThree && pair == 0) {
-		cout << "Congratulations! You got Three of a Kind and earned $3!" << endl << endl;
-		money += 3;
-	}
-	else if (isThree && pair >= 1) {
+	else if (isFullHouse || (maybeFullHouse && FindCard(hand, 3) == FindCard(hand, 4))) {
 		cout << "Congratulations! You got Full House and earned $9!" << endl << endl;
 		money += 9;
+	}
+	else if (isThree) {
+		cout << "Congratulations! You got Three of a Kind and earned $3!" << endl << endl;
+		money += 3;
 	}
 	else if (!isThree && pair == 2) {
 		cout << "Congratulations! You got Two Pair and earned $2!" << endl << endl;
